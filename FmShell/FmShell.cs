@@ -194,15 +194,33 @@ namespace FmShell
                     return HandleBackspaceKey();
                 case ConsoleKey.Delete:
                     return HandleDeleteKey();
+                case ConsoleKey.UpArrow:
+                    return HandleUpArrowKey();
+                case ConsoleKey.DownArrow:
+                    return HandleDownArrowKey();
                 case ConsoleKey.LeftArrow:
                     return HandleLeftArrowKey();
                 case ConsoleKey.RightArrow:
                     return HandleRightArrowKey();
                 case ConsoleKey.Enter:
                     return HandleEnterKey();
+                case ConsoleKey.Tab:
+                    return HandleTabKey();
                 default:
                     return HandleCharacterInsertion(keyInfo.KeyChar);
             }            
+        }
+
+        private bool HandleUpArrowKey()
+        {
+            // TODO: Command history
+            return false;
+        }
+
+        private bool HandleDownArrowKey()
+        {
+            // TODO: Command history
+            return false;
         }
 
         private bool HandleCharacterInsertion(char keyChar)
@@ -279,6 +297,12 @@ namespace FmShell
             }
             Characters.Remove(--CursorIndex, 1);
             Console.Write("\b \b");
+            return false;
+        }
+
+        private bool HandleTabKey()
+        {
+            // TODO: Autocomplete
             return false;
         }
 
