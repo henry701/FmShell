@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace FmShell
 {
-    internal class ConsoleUtilities
+    internal static class ConsoleUtilities
     {
         public static void AdvanceCursor()
         {
@@ -36,6 +36,21 @@ namespace FmShell
                     Console.SetCursorPosition(Console.BufferWidth - 1, Console.CursorTop - 1);
                 }
             }
+        }
+
+        public static void RewriteLine(this Shell shell)
+        {
+            int origLeft = Console.CursorLeft;
+            int origTop = Console.CursorTop;
+            for (int i = shell.CursorIndex; i < shell.Characters.Length; i++)
+            {
+                ConsoleUtilities.AdvanceCursor();
+                Console.Write('\b');
+                Console.Write(shell.Characters.ToString(i, 1));
+            }
+            ConsoleUtilities.AdvanceCursor();
+            Console.Write("\b \b");
+            Console.SetCursorPosition(origLeft, origTop);
         }
     }
 }

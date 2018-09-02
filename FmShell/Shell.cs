@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using NLog.Config;
+using FmShell.KeyHandler;
 
 namespace FmShell
 {
@@ -21,7 +22,7 @@ namespace FmShell
         private static readonly ILogger LOGGER = LogManager.GetCurrentClassLogger();
 
         public string ShellPrompt { get; private set; }
-        public Object ShellMethods { get; private set; }
+        public object ShellMethods { get; private set; }
 
         public string ConsoleTitle { get; private set; }
         public ConsoleColor? BackgroundColor { get; private set; }
@@ -29,9 +30,12 @@ namespace FmShell
 
         public bool IsStarted { get; private set; }
 
-        private StringBuilder Characters { get; set; }
-        private short CursorIndex { get; set; }
+        internal StringBuilder Characters { get; set; }
+        internal short CursorIndex { get; set; }
+
         private IDictionary<LoggingRule, ICollection<Target>> RemovedTargets { get; set; }
+
+        private IDictionary<ConsoleKey, Func<ConsoleKeyInfo, Shell, bool>> ConsoleKeyHandlers { get; set; }
 
         private volatile bool shouldRun;
 
@@ -41,7 +45,7 @@ namespace FmShell
         /// </summary>
         /// <param name="shellMethods">The <see cref="object"/> to delegate invocations to.</param>
         /// <param name="shellPrompt">The <see cref="string"/> to prepend as a prompt for user input.</param>
-        public Shell(Object shellMethods, string shellPrompt = "#FmShell>", string consoleTitle = null, ConsoleColor? backgroundColor = null, ConsoleColor? foregroundColor = null)
+        public Shell(object shellMethods, string shellPrompt = "#FmShell>", string consoleTitle = null, ConsoleColor? backgroundColor = null, ConsoleColor? foregroundColor = null)
         {
             ShellMethods = shellMethods;
             ShellPrompt = shellPrompt;
@@ -50,6 +54,18 @@ namespace FmShell
             ForegroundColor = foregroundColor;
             Characters = new StringBuilder();
             RemovedTargets = new Dictionary<LoggingRule, ICollection<Target>>();
+            // TODO: Reflectio discovery?
+            ConsoleKeyHandlers = new Dictionary<ConsoleKey, Func<ConsoleKeyInfo, Shell, bool>>()
+            {
+                { ConsoleKey.Backspace, new BackspaceKeyHandler().HandleKey },
+                { ConsoleKey.Delete, new DeleteKeyHandler().HandleKey },
+                { ConsoleKey.Tab, new TabKeyHandler().HandleKey },
+                { ConsoleKey.DownArrow, new DownArrowKeyHandler().HandleKey },
+                { ConsoleKey.UpArrow, new UpArrowKeyHandler().HandleKey },
+                { ConsoleKey.RightArrow, new RightArrowKeyHandler().HandleKey },
+                { ConsoleKey.LeftArrow, new LeftArrowKeyHandler().HandleKey },
+                { ConsoleKey.Enter, new EnterKeyHandler().HandleKey },
+            };
         }
 
         private static bool IsConsoleTarget(Target target) => target is ConsoleTarget || target is ColoredConsoleTarget;
@@ -106,9 +122,10 @@ namespace FmShell
             {
                 Console.Out.Write(ShellPrompt);
                 string command;
+                object[] args;
                 try
                 {
-                    command = ProcessCommand();
+                    (command, args) = ProcessCommand();
                 }
                 catch(OperationCanceledException)
                 {
@@ -119,11 +136,11 @@ namespace FmShell
                 {
                     continue;
                 }
-                InvokeCommand(objectType, command);
+                InvokeCommand(objectType, command, args);
             }
         }
 
-        private void InvokeCommand(Type objectType, String methodName)
+        private void InvokeCommand(Type objectType, string methodName, object[] args)
         {
             try
             {
@@ -136,7 +153,7 @@ namespace FmShell
                 object response;
                 try
                 {
-                    response = methodInfo.Invoke(ShellMethods, new object[] { new FmShellArguments(this, new object[] { }) });
+                    response = methodInfo.Invoke(ShellMethods, new object[] { new FmShellArguments(this, args) });
                     Console.Out.WriteLine(Convert.ToString(response));
                 }
                 catch (Exception e)
@@ -161,16 +178,16 @@ namespace FmShell
             CursorIndex = 0;
         }
 
-        private string ProcessCommand()
+        private (string command, object[] args) ProcessCommand()
         {
             while (!ProcessKey())
             {
                 ;
             }
-
             try
             {
-                return Characters.ToString();
+                string line = Characters.ToString();
+                return ParseCommandLine(line);
             }
             finally
             {
@@ -178,131 +195,81 @@ namespace FmShell
             }
         }
 
+        private (string command, object[] args) ParseCommandLine(string line)
+        {
+            bool inQuotes = false;
+            bool isEscaping = false;
+
+            string[] tokens = line.Split(c => {
+                if (c == '\\' && !isEscaping) { isEscaping = true; return false; }
+
+                if (c == '\"' && !isEscaping)
+                    inQuotes = !inQuotes;
+
+                isEscaping = false;
+
+                return !inQuotes && Char.IsWhiteSpace(c)/*c == ' '*/;
+            })
+            .Select(arg => arg.Trim().TrimMatchingQuotes('\"'))
+            .Where(arg => !String.IsNullOrEmpty(arg))
+            .ToArray();
+
+            if (tokens.Length > 0)
+            {
+                return (tokens[0], tokens.Skip(1).ToArray());
+            }
+            else
+            {
+                return (String.Empty, Array.Empty<string>());
+            }
+        }
+
         private bool ProcessKey()
         {
-            SpinWait.SpinUntil(() => 
+            // TODO: Use task interrupts instead
+            SpinWait.SpinUntil(() =>
                 Console.KeyAvailable || !shouldRun
             );
-            if(!shouldRun)
+            if (!shouldRun)
             {
                 throw new OperationCanceledException();
             }
             var keyInfo = Console.ReadKey(true);
-            switch(keyInfo.Key)
+            return HandleKeyInfo(keyInfo);
+        }
+
+        private bool HandleKeyInfo(ConsoleKeyInfo keyInfo)
+        {
+            var keyCode = keyInfo.Key;
+            ConsoleKeyHandlers.TryGetValue(keyCode, out var handlerFunc);
+            if (handlerFunc != null)
             {
-                case ConsoleKey.Backspace:
-                    return HandleBackspaceKey();
-                case ConsoleKey.Delete:
-                    return HandleDeleteKey();
-                case ConsoleKey.UpArrow:
-                    return HandleUpArrowKey();
-                case ConsoleKey.DownArrow:
-                    return HandleDownArrowKey();
-                case ConsoleKey.LeftArrow:
-                    return HandleLeftArrowKey();
-                case ConsoleKey.RightArrow:
-                    return HandleRightArrowKey();
-                case ConsoleKey.Enter:
-                    return HandleEnterKey();
-                case ConsoleKey.Tab:
-                    return HandleTabKey();
-                default:
-                    return HandleCharacterInsertion(keyInfo.KeyChar);
-            }            
+                return handlerFunc.Invoke(keyInfo, this);
+            }
+            else
+            {
+                return HandleCharacterInsertion(keyInfo);
+            }
         }
 
-        private bool HandleUpArrowKey()
+        private bool HandleCharacterInsertion(ConsoleKeyInfo keyInfo)
         {
-            // TODO: Command history
-            return false;
-        }
-
-        private bool HandleDownArrowKey()
-        {
-            // TODO: Command history
-            return false;
-        }
-
-        private bool HandleCharacterInsertion(char keyChar)
-        {
+            char keyChar = keyInfo.KeyChar;
             if (keyChar == '\0')
             {
                 return false;
             }
             if(keyChar == '\n')
             {
-                return HandleEnterKey();
+                return ConsoleKeyHandlers[ConsoleKey.Enter].Invoke(new ConsoleKeyInfo(keyChar, ConsoleKey.Enter, false, false, false), this);
             }
             Characters.Insert(CursorIndex, keyChar);
             CursorIndex += 1;
             Console.Write(keyChar);
-            return false;
-        }
-
-        private bool HandleEnterKey()
-        {
-            CursorIndex = 0;
-            Console.WriteLine();
-            return true;
-        }
-
-        private bool HandleRightArrowKey()
-        {
-            if (CursorIndex >= Characters.Length)
+            if (true) // TODO: Is the 'insert' key off?
             {
-                return false;
+                this.RewriteLine();
             }
-            ConsoleUtilities.AdvanceCursor();
-            CursorIndex += 1;
-            return false;
-        }
-
-        private bool HandleLeftArrowKey()
-        {
-            if (CursorIndex <= 0)
-            {
-                return false;
-            }
-            ConsoleUtilities.BackCursor();
-            CursorIndex -= 1;
-            return false;
-        }
-
-        private bool HandleDeleteKey()
-        {
-            if (CursorIndex >= Characters.Length)
-            {
-                return false;
-            }
-            Characters.Remove(CursorIndex, 1);
-            int origLeft = Console.CursorLeft;
-            int origTop = Console.CursorTop;
-            for (int i = CursorIndex; i < Characters.Length; i++)
-            {
-                ConsoleUtilities.AdvanceCursor();
-                Console.Write('\b');
-                Console.Write(Characters.ToString(i, 1));
-            }
-            ConsoleUtilities.AdvanceCursor();
-            Console.Write("\b \b");
-            Console.SetCursorPosition(origLeft, origTop);
-            return false;
-        }
-
-        private bool HandleBackspaceKey()
-        {
-            if (CursorIndex <= 0)
-            {
-                return false;
-            }
-            Characters.Remove(--CursorIndex, 1);
-            Console.Write("\b \b");
-            return false;
-        }
-
-        private bool HandleTabKey()
-        {
-            // TODO: Autocomplete
             return false;
         }
 
