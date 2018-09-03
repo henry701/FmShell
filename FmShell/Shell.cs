@@ -54,7 +54,7 @@ namespace FmShell
             ForegroundColor = foregroundColor;
             Characters = new StringBuilder();
             RemovedTargets = new Dictionary<LoggingRule, ICollection<Target>>();
-            // TODO: Reflectio discovery?
+            // TODO: Reflection-based discovery?
             ConsoleKeyHandlers = new Dictionary<ConsoleKey, Func<ConsoleKeyInfo, Shell, bool>>()
             {
                 { ConsoleKey.Backspace, new BackspaceKeyHandler().HandleKey },
