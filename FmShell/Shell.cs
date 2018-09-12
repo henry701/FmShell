@@ -131,7 +131,7 @@ namespace FmShell
                     continue;
                 }
                 Characters.Clear();
-                if (String.IsNullOrWhiteSpace(command))
+                if (string.IsNullOrWhiteSpace(command))
                 {
                     continue;
                 }
@@ -210,7 +210,7 @@ namespace FmShell
                 return !inQuotes && Char.IsWhiteSpace(c)/*c == ' '*/;
             })
             .Select(arg => arg.Trim().TrimMatchingQuotes('\"'))
-            .Where(arg => !String.IsNullOrEmpty(arg))
+            .Where(arg => !string.IsNullOrEmpty(arg))
             .ToArray();
 
             if (tokens.Length > 0)
@@ -219,7 +219,7 @@ namespace FmShell
             }
             else
             {
-                return (String.Empty, Array.Empty<string>());
+                return (string.Empty, Array.Empty<string>());
             }
         }
 

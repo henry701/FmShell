@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace FmShell
 {
-    internal static class StringExtensions
+    internal static class stringExtensions
     {
         public static IEnumerable<string> Split(this string str, Func<char, bool> controller)
         {
