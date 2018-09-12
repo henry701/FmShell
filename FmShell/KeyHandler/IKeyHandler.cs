@@ -4,7 +4,7 @@ using System.Text;
 
 namespace FmShell.KeyHandler
 {
-    internal interface IKeyHandler
+    public interface IKeyHandler
     {
         bool HandleKey(ConsoleKeyInfo keyInfo, Shell shell);
         ConsoleKey HandledKey { get; }

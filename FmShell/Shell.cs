@@ -53,8 +53,8 @@ namespace FmShell
             ForegroundColor = foregroundColor;
             Characters = new StringBuilder();
             RemovedTargets = new Dictionary<LoggingRule, ICollection<Target>>();
-            ConsoleKeyHandlers = Assembly.GetExecutingAssembly()
-                .DefinedTypes
+            ConsoleKeyHandlers = AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(ass => ass.DefinedTypes)
                 .Where(typeInfo => typeof(IKeyHandler).IsAssignableFrom(typeInfo) && typeInfo.IsClass &&
                 !typeInfo.IsAbstract && !typeInfo.ContainsGenericParameters)
                 .Select(tp => (IKeyHandler) Activator.CreateInstance(tp))
