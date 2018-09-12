@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Reflection;
 using NLog;
-using System.Threading.Tasks;
 using NLog.Targets;
 using NLog.Targets.Wrappers;
 using System.Collections.Generic;
