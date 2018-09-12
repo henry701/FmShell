@@ -219,7 +219,7 @@ namespace FmShell
 
         private bool ProcessKey()
         {
-            // TODO: Use task interrupts instead
+            // TODO: Use something non-spinning instead?
             SpinWait.SpinUntil(() =>
                 Console.KeyAvailable || !shouldRun
             );

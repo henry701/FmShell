@@ -8,7 +8,7 @@ namespace FmShell.KeyHandler
 
         public bool HandleKey(ConsoleKeyInfo keyInfo, Shell shell)
         {
-            // TODO: Command History
+            // TODO: Command History navigate
             return false;
         }
     }

@@ -8,7 +8,7 @@ namespace FmShell.KeyHandler
 
         public bool HandleKey(ConsoleKeyInfo keyInfo, Shell shell)
         {
-            // TODO: Autocomplete behavior
+            // TODO: Autocomplete behavior using commands or command history
             return false;
         }
     }
