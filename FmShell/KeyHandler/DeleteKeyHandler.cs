@@ -2,8 +2,10 @@
 
 namespace FmShell.KeyHandler
 {
-    internal sealed class DeleteKeyHandler
+    internal sealed class DeleteKeyHandler : IKeyHandler
     {
+        public ConsoleKey HandledKey => ConsoleKey.Delete;
+
         public bool HandleKey(ConsoleKeyInfo keyInfo, Shell shell)
         {
             if (shell.CursorIndex >= shell.Characters.Length)

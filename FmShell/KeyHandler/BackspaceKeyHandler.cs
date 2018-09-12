@@ -2,8 +2,10 @@
 
 namespace FmShell.KeyHandler
 {
-    internal sealed class BackspaceKeyHandler
+    internal sealed class BackspaceKeyHandler : IKeyHandler
     {
+        public ConsoleKey HandledKey => ConsoleKey.Backspace;
+
         public bool HandleKey(ConsoleKeyInfo keyInfo, Shell shell)
         {
             if (shell.CursorIndex <= 0)

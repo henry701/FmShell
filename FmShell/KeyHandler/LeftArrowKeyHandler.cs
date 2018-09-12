@@ -2,8 +2,10 @@
 
 namespace FmShell.KeyHandler
 {
-    internal sealed class LeftArrowKeyHandler
+    internal sealed class LeftArrowKeyHandler : IKeyHandler
     {
+        public ConsoleKey HandledKey => ConsoleKey.LeftArrow;
+
         public bool HandleKey(ConsoleKeyInfo keyInfo, Shell shell)
         {
             if (shell.CursorIndex <= 0)

@@ -34,7 +34,7 @@ namespace FmShell
 
         private IDictionary<LoggingRule, ICollection<Target>> RemovedTargets { get; set; }
 
-        private IDictionary<ConsoleKey, Func<ConsoleKeyInfo, Shell, bool>> ConsoleKeyHandlers { get; set; }
+        private IDictionary<ConsoleKey, IKeyHandler> ConsoleKeyHandlers { get; set; }
 
         private volatile bool shouldRun;
 
@@ -53,18 +53,12 @@ namespace FmShell
             ForegroundColor = foregroundColor;
             Characters = new StringBuilder();
             RemovedTargets = new Dictionary<LoggingRule, ICollection<Target>>();
-            // TODO: Reflection-based discovery?
-            ConsoleKeyHandlers = new Dictionary<ConsoleKey, Func<ConsoleKeyInfo, Shell, bool>>()
-            {
-                { ConsoleKey.Backspace, new BackspaceKeyHandler().HandleKey },
-                { ConsoleKey.Delete, new DeleteKeyHandler().HandleKey },
-                { ConsoleKey.Tab, new TabKeyHandler().HandleKey },
-                { ConsoleKey.DownArrow, new DownArrowKeyHandler().HandleKey },
-                { ConsoleKey.UpArrow, new UpArrowKeyHandler().HandleKey },
-                { ConsoleKey.RightArrow, new RightArrowKeyHandler().HandleKey },
-                { ConsoleKey.LeftArrow, new LeftArrowKeyHandler().HandleKey },
-                { ConsoleKey.Enter, new EnterKeyHandler().HandleKey },
-            };
+            ConsoleKeyHandlers = Assembly.GetExecutingAssembly()
+                .DefinedTypes
+                .Where(typeInfo => typeof(IKeyHandler).IsAssignableFrom(typeInfo) && typeInfo.IsClass &&
+                !typeInfo.IsAbstract && !typeInfo.ContainsGenericParameters)
+                .Select(tp => (IKeyHandler) Activator.CreateInstance(tp))
+                .ToDictionary(hnd => hnd.HandledKey, hnd => hnd);
         }
 
         private static bool IsConsoleTarget(Target target) => target is ConsoleTarget || target is ColoredConsoleTarget;
@@ -240,10 +234,10 @@ namespace FmShell
         private bool HandleKeyInfo(ConsoleKeyInfo keyInfo)
         {
             var keyCode = keyInfo.Key;
-            ConsoleKeyHandlers.TryGetValue(keyCode, out var handlerFunc);
-            if (handlerFunc != null)
+            ConsoleKeyHandlers.TryGetValue(keyCode, out var handler);
+            if (handler != null)
             {
-                return handlerFunc.Invoke(keyInfo, this);
+                return handler.HandleKey(keyInfo, this);
             }
             else
             {
@@ -260,15 +254,12 @@ namespace FmShell
             }
             if(keyChar == '\n')
             {
-                return ConsoleKeyHandlers[ConsoleKey.Enter].Invoke(new ConsoleKeyInfo(keyChar, ConsoleKey.Enter, false, false, false), this);
+                return ConsoleKeyHandlers[ConsoleKey.Enter].HandleKey(new ConsoleKeyInfo(keyChar, ConsoleKey.Enter, false, false, false), this);
             }
             Characters.Insert(CursorIndex, keyChar);
             CursorIndex += 1;
             Console.Write(keyChar);
-            if (true) // TODO: Is the 'insert' key off?
-            {
-                this.RewriteLine();
-            }
+            this.RewriteLine();
             return false;
         }
 
