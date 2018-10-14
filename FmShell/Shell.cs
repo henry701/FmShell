@@ -38,6 +38,12 @@ namespace FmShell
 
         private volatile bool shouldRun;
 
+        private ConsoleKeyInfo currentKeyInfo;
+        private readonly ManualResetEvent keyInfoReceivedEvent = new ManualResetEvent(false);
+        private readonly ManualResetEvent keyInfoAvailableEvent = new ManualResetEvent(false);
+
+        private readonly Thread consoleKeyReader;
+
         /// <summary>
         /// Constructs a new instance that delegates calls to the specified object and uses the provided string as
         /// an input prompt for the final user.
@@ -59,6 +65,7 @@ namespace FmShell
                 !typeInfo.IsAbstract && !typeInfo.ContainsGenericParameters)
                 .Select(tp => (IKeyHandler) Activator.CreateInstance(tp))
                 .ToDictionary(hnd => hnd.HandledKey, hnd => hnd);
+            consoleKeyReader = new Thread(KeyInfoReader);
         }
 
         private static bool IsConsoleTarget(Target target) => target is ConsoleTarget || target is ColoredConsoleTarget;
@@ -78,8 +85,11 @@ namespace FmShell
                 return;
             }
 
-            shouldRun = false;
+            consoleKeyReader.Interrupt();
+
             Console.Out.WriteLine("Stopping shell...");
+            shouldRun = false;
+            keyInfoAvailableEvent.Set();
 
             SpinWait.SpinUntil(() =>
                 !IsStarted
@@ -98,6 +108,8 @@ namespace FmShell
 
             RemoveConsoleLoggers();
             InitializeConsole();
+
+            consoleKeyReader.Start();
 
             Type objectType = ShellMethods.GetType();
             IsStarted = true;
@@ -219,16 +231,32 @@ namespace FmShell
 
         private bool ProcessKey()
         {
-            // TODO: Use something non-spinning instead?
-            SpinWait.SpinUntil(() =>
-                Console.KeyAvailable || !shouldRun
-            );
+            var keyInfo = GetCachedKey();
             if (!shouldRun)
             {
                 throw new OperationCanceledException();
             }
-            var keyInfo = Console.ReadKey(true);
             return HandleKeyInfo(keyInfo);
+        }
+
+        private ConsoleKeyInfo GetCachedKey()
+        {
+            keyInfoAvailableEvent.WaitOne();
+            ConsoleKeyInfo info = currentKeyInfo;
+            keyInfoAvailableEvent.Reset();
+            keyInfoReceivedEvent.Set();
+            return info;
+        }
+
+        private void KeyInfoReader()
+        {
+            while (true)
+            {
+                currentKeyInfo = Console.ReadKey(true);
+                keyInfoAvailableEvent.Set();
+                keyInfoReceivedEvent.WaitOne();
+                keyInfoReceivedEvent.Reset();
+            }
         }
 
         private bool HandleKeyInfo(ConsoleKeyInfo keyInfo)
