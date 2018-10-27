@@ -1,0 +1,112 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1" GroupingSetting="Access" MembersFormat="FullSignature">
+  <Class Name="FmShell.ConsoleUtilities">
+    <Position X="2.75" Y="15.75" Width="2.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAEACAAAAAAAAAAAAABAAAAAAA=</HashCode>
+      <FileName>ConsoleUtilities.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="FmShell.FmShellArguments">
+    <Position X="2.75" Y="4" Width="3" />
+    <AssociationLine Name="Shell" Type="FmShell.Shell">
+      <MemberNameLabel ManuallyPlaced="true">
+        <Position X="0.102" Y="0.311" />
+      </MemberNameLabel>
+    </AssociationLine>
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAA=</HashCode>
+      <FileName>FmShellArguments.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Shell" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="FmShell.Shell">
+    <Position X="2.75" Y="7.25" Width="10.5" />
+    <AssociationLine Name="ConsoleKeyHandlers" Type="FmShell.KeyHandler.IKeyHandler">
+      <MemberNameLabel ManuallyPlaced="true" ManuallySized="true">
+        <Position X="0.803" Y="-1.356" Height="0.182" Width="3.823" />
+      </MemberNameLabel>
+    </AssociationLine>
+    <TypeIdentifier>
+      <HashCode>FAACAAQoACRgYAQABACAAAAACAhAAQAApRoAAICACAE=</HashCode>
+      <FileName>Shell.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsCollectionAssociation>
+      <Property Name="ConsoleKeyHandlers" />
+    </ShowAsCollectionAssociation>
+  </Class>
+  <Class Name="FmShell.KeyHandler.BackspaceKeyHandler" BaseTypeListCollapsed="true">
+    <Position X="14.25" Y="5.75" Width="3.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAgAAAAAAgAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>KeyHandler\BackspaceKeyHandler.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="FmShell.KeyHandler.DeleteKeyHandler" BaseTypeListCollapsed="true">
+    <Position X="18.25" Y="2.25" Width="3.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAgAAAAAAgAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>KeyHandler\DeleteKeyHandler.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="FmShell.KeyHandler.DownArrowKeyHandler" BaseTypeListCollapsed="true">
+    <Position X="22.25" Y="2.25" Width="3.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAgAAAAAAgAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>KeyHandler\DownArrowKeyHandler.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="FmShell.KeyHandler.EnterKeyHandler" BaseTypeListCollapsed="true">
+    <Position X="14.25" Y="2.25" Width="3.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAgAAAAAAgAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>KeyHandler\EnterKeyHandler.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="FmShell.KeyHandler.LeftArrowKeyHandler" BaseTypeListCollapsed="true">
+    <Position X="18.25" Y="4" Width="3.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAgAAAAAAgAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>KeyHandler\LeftArrowKeyHandler.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="FmShell.KeyHandler.RightArrowKeyHandler" BaseTypeListCollapsed="true">
+    <Position X="22.25" Y="4" Width="3.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAgAAAAAAgAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>KeyHandler\RightArrowKeyHandler.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="FmShell.KeyHandler.TabKeyHandler" BaseTypeListCollapsed="true">
+    <Position X="18.25" Y="5.75" Width="3.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAgAAAAAAgAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>KeyHandler\TabKeyHandler.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="FmShell.KeyHandler.UpArrowKeyHandler" BaseTypeListCollapsed="true">
+    <Position X="22.25" Y="5.75" Width="3.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAgAAAAAAgAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>KeyHandler\UpArrowKeyHandler.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Interface Name="FmShell.KeyHandler.IKeyHandler">
+    <Position X="14.25" Y="4" Width="3.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAgAAAAAAgAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>KeyHandler\IKeyHandler.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>
